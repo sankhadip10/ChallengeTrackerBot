@@ -8,7 +8,12 @@ def setup_reactions(bot):
         if message.author == bot.user:
             return
 
-        # Your reactions logic here, e.g., 
+        # If the message is a command, process it and exit the function
+        if message.content.startswith('!'):
+            await bot.process_commands(message)
+            return
+
+        # Your reactions logic here
         if message.content.startswith("Report"):
             await message.add_reaction("👍")
         else:
@@ -17,4 +22,5 @@ def setup_reactions(bot):
             # Optionally, delete the warning after a few seconds for cleanliness
             await warning.delete(delay=5)
 
-    # If you had other functionalities related to reactions, you can define them here.
+        # If there are other functionalities not starting with the prefix '!', ensure you process them after
+        await bot.process_commands(message)

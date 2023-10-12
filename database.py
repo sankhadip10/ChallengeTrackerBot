@@ -16,12 +16,13 @@ def setup():
     ''')
     conn.commit()
 
-def add_event(event_name, duration):
+def add_event(event_name, duration, start_date, end_date):
     """Add a new event to the database."""
-    # Here, we are using placeholders to prevent SQL injection
+    print("Attempting to add event to the database...")
     cursor.execute("INSERT INTO events (event_name, duration, start_date, end_date) VALUES (?, ?, ?, ?)",
-                   (event_name, duration, "Start Date Placeholder", "End Date Placeholder"))
+                   (event_name, duration, start_date, end_date))
     conn.commit()
+    print("Event added successfully.")
 
 def delete_event(event_name):
     """Remove an event from the database."""
