@@ -48,6 +48,25 @@ def setup_events(bot):
         except Exception as e:
             await ctx.send(f"An error occurred: {e}")
 
+    # Assuming you've already imported the necessary modules and set up your bot
+    @bot.command()
+    async def register(ctx):
+        user_id = ctx.message.author.id
+        if db.is_user_registered(user_id):  # You need to define this function in your database.py
+            await ctx.send(f"{ctx.message.author.mention}, you are already registered!")
+            return
+        db.register_user(user_id)  # Register the user in your data storage
+        await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered!")
+
+    @bot.command()
+    async def post(ctx, url: str):
+        user_id = ctx.message.author.id
+        if not db.is_user_registered(user_id):
+            await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
+            return
+        db.add_daily_post(user_id, url)  # You need to define this function in your database.py
+        await ctx.send(f"{ctx.message.author.mention}, your post has been recorded for today!")
+
 
 # Ensure to load the commands when importing the module
 def setup(bot):
