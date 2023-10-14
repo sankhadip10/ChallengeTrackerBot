@@ -100,6 +100,17 @@ def register_user(user_id):
     else:
         print(f"User {user_id} is already registered.")
 
+def get_all_users():
+    """Retrieve all registered users from the database."""
+    cursor.execute("SELECT user_id FROM users")
+    users = cursor.fetchall()
+
+    # Flatten the list of tuples to a single list
+    user_ids = [user[0] for user in users]
+
+    return user_ids
+
+
 
 def add_daily_post(user_id, url):
     import datetime

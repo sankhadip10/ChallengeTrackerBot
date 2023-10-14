@@ -18,6 +18,13 @@ print(f"Registering user {user_id}...")
 db.register_user(user_id)
 print(f"Is user {user_id} registered?", db.is_user_registered(user_id))
 
+# List all registered users
+print("\nAll registered users:")
+users = db.get_all_users()
+for user_id in users:
+    print(user_id)
+
+
 # Test adding a daily post
 print(f"\nAdding a daily post for user {user_id}...")
 db.add_daily_post(user_id, "http://example.com/post1")
