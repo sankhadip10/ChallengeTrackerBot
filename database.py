@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 # Connection to the SQLite database
 conn = sqlite3.connect('events.db')
@@ -34,6 +35,19 @@ def setup():
         post_date TEXT NOT NULL,
         post_url TEXT,
         FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )
+    ''')
+
+    # User event streak table setup
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_event_streaks (
+        user_id INTEGER,
+        event_name TEXT,
+        streak INTEGER DEFAULT 0,
+        last_post_date TEXT,
+        is_eligible INTEGER DEFAULT 1,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (event_name) REFERENCES events(event_name)
     )
     ''')
 
@@ -116,6 +130,28 @@ def add_daily_post(user_id, url):
     import datetime
     current_date = datetime.datetime.now().date().isoformat()
     cursor.execute("INSERT INTO posts (user_id, post_date, post_url) VALUES (?, ?, ?)", (user_id, current_date, url))
+    conn.commit()
+
+# Function to update or reset the streak
+def update_streak(user_id, event_name, date_posted):
+    cursor.execute("SELECT streak, last_post_date, is_eligible FROM user_event_streaks WHERE user_id=? AND event_name=?", (user_id, event_name))
+    result = cursor.fetchone()
+
+    # If the user hasn't posted for this event before
+    if not result:
+        cursor.execute("INSERT INTO user_event_streaks (user_id, event_name, streak, last_post_date, is_eligible) VALUES (?, ?, 1, ?, 1)", (user_id, event_name, date_posted))
+    else:
+        streak, last_post_date, is_eligible = result
+
+        # If user's last post was yesterday
+        if (date_posted - datetime.strptime(last_post_date, '%Y-%m-%d').date()).days == 1:
+            streak += 1
+        else:
+            streak = 1
+            is_eligible = 0
+
+        cursor.execute("UPDATE user_event_streaks SET streak=?, last_post_date=?, is_eligible=? WHERE user_id=? AND event_name=?", (streak, date_posted, is_eligible, user_id, event_name))
+
     conn.commit()
 
 

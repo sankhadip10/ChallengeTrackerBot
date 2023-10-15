@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from discord.ext import commands
+import post_verification
 import database as db
 
 
@@ -58,14 +61,38 @@ def setup_events(bot):
         db.register_user(user_id)  # Register the user in your data storage
         await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered!")
 
+    # @bot.command()
+    # async def post(ctx, url: str):
+    #     user_id = ctx.message.author.id
+    #     if not db.is_user_registered(user_id):
+    #         await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
+    #         return
+    #     db.add_daily_post(user_id, url)  # You need to define this function in your database.py
+    #     await ctx.send(f"{ctx.message.author.mention}, your post has been recorded for today!")
+
     @bot.command()
-    async def post(ctx, url: str):
+    async def post(ctx, event_name: str, url: str):
         user_id = ctx.message.author.id
+
+        # Check if event exists
+        if event_name not in db.get_all_events():
+            await ctx.send(f"No event found with the name {event_name}!")
+            return
+
         if not db.is_user_registered(user_id):
             await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
             return
-        db.add_daily_post(user_id, url)  # You need to define this function in your database.py
-        await ctx.send(f"{ctx.message.author.mention}, your post has been recorded for today!")
+
+        # Verify the post
+        is_verified = post_verification.verify_post(url)
+        if not is_verified:
+            await ctx.send(f"{ctx.message.author.mention}, the URL provided didn't match our verification criteria.")
+            return
+
+        db.add_daily_post(user_id, url)
+        db.update_streak(user_id, event_name, datetime.date.today())  # Update the streak
+        await ctx.send(
+            f"{ctx.message.author.mention}, your post has been recorded for today for the event {event_name}!")
 
 
 # Ensure to load the commands when importing the module

@@ -7,7 +7,7 @@ from config import consumer_key,consumer_secret,access_token,access_token_secret
 
 def verify_url(url):
     twitter_pattern = re.compile(r'https?://twitter\.com/[^/]+/status/\d+')
-    linkedin_pattern = re.compile(r'https?://www\.linkedin\.com/feed/update/\w+')
+    linkedin_pattern = re.compile(r'https?://www\.linkedin\.com/feed/update/urn:li:activity:\d+/')
 
     if twitter_pattern.match(url):
         return 'twitter'
@@ -45,9 +45,12 @@ class LinkedInSpider(scrapy.Spider):
             self.start_urls.append(url)
 
     def parse(self, response):
-        post_content = response.xpath('//div[contains(@class, "post-content")]/text()').get()
-        if "day #1" in post_content and "#30_days_challenge" in post_content:
-            self.log('Verified Post: %s' % response.url)
+        post_content = response.xpath("//a[contains(text(), '_days_challenge')]/text()").get()
+        print("+++++++++++++++",post_content)
+        if post_content:
+            if "day #1" in post_content or "29_days_challenge" in post_content:
+                self.log('Verified Post: %s' % response.url)
+
 
 def verify_linkedin_post(url):
     process = CrawlerProcess({'USER_AGENT': 'Mozilla/5.0'})
