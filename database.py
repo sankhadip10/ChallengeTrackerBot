@@ -16,7 +16,8 @@ def setup():
         event_name TEXT PRIMARY KEY,
         duration INTEGER,
         start_date TEXT,
-        end_date TEXT
+        end_date TEXT,
+        token_reward INTEGER
     )
     ''')
 
@@ -38,6 +39,15 @@ def setup():
     )
     ''')
 
+    # Create a  Table for User Balances
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_balances (
+    user_id INTEGER PRIMARY KEY,
+    balance INTEGER DEFAULT 0
+    );
+
+    ''')
+
     # User event streak table setup
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS user_event_streaks (
@@ -50,6 +60,8 @@ def setup():
         FOREIGN KEY (event_name) REFERENCES events(event_name)
     )
     ''')
+
+
 
     conn.commit()
 
@@ -134,12 +146,20 @@ def add_daily_post(user_id, url):
 
 # Function to update or reset the streak
 def update_streak(user_id, event_name, date_posted):
-    cursor.execute("SELECT streak, last_post_date, is_eligible FROM user_event_streaks WHERE user_id=? AND event_name=?", (user_id, event_name))
+    cursor.execute(
+        "SELECT streak, last_post_date, is_eligible FROM user_event_streaks WHERE user_id=? AND event_name=?",
+        (user_id, event_name))
     result = cursor.fetchone()
+
+    # Fetch the event's duration from the events table
+    cursor.execute("SELECT duration FROM events WHERE event_name=?", (event_name,))
+    event_duration = cursor.fetchone()[0]
 
     # If the user hasn't posted for this event before
     if not result:
-        cursor.execute("INSERT INTO user_event_streaks (user_id, event_name, streak, last_post_date, is_eligible) VALUES (?, ?, 1, ?, 1)", (user_id, event_name, date_posted))
+        cursor.execute(
+            "INSERT INTO user_event_streaks (user_id, event_name, streak, last_post_date, is_eligible) VALUES (?, ?, 1, ?, 1)",
+            (user_id, event_name, date_posted))
     else:
         streak, last_post_date, is_eligible = result
 
@@ -150,11 +170,60 @@ def update_streak(user_id, event_name, date_posted):
             streak = 1
             is_eligible = 0
 
-        cursor.execute("UPDATE user_event_streaks SET streak=?, last_post_date=?, is_eligible=? WHERE user_id=? AND event_name=?", (streak, date_posted, is_eligible, user_id, event_name))
+        # Check if streak matches the event's duration
+        if streak == event_duration:
+            is_eligible = 1
+        else:
+            is_eligible = 0
+
+        cursor.execute(
+            "UPDATE user_event_streaks SET streak=?, last_post_date=?, is_eligible=? WHERE user_id=? AND event_name=?",
+            (streak, date_posted, is_eligible, user_id, event_name))
 
     conn.commit()
 
 
+def get_user_streak(user_id, event_name):
+    cursor.execute("SELECT streak FROM user_event_streaks WHERE user_id=? AND event_name=?", (user_id, event_name))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    return 0
+
+
+def get_eligible_users(event_name):
+    # Retrieve event's duration
+    cursor.execute("SELECT duration FROM events WHERE event_name=?", (event_name,))
+    result = cursor.fetchone()
+
+    # If no event with the given name exists, return an empty list
+    if result is None:
+        print(f"No event found with name: {event_name}")
+        return []
+
+    event_duration = result[0]
+
+    cursor.execute("SELECT user_id FROM user_event_streaks WHERE event_name=? AND streak=?",
+                   (event_name, event_duration))
+    eligible_users = [user[0] for user in cursor.fetchall()]
+    return eligible_users
+
+def distribute_tokens(event_name):
+    # Fetch the token amount for the event
+    cursor.execute("SELECT token_reward FROM events WHERE event_name=?", (event_name,))
+    token_amount = cursor.fetchone()[0]
+
+    # Fetch eligible users
+    eligible_users = get_eligible_users(event_name)
+
+    # Distribute tokens to eligible users
+    for user in eligible_users:
+        cursor.execute("INSERT INTO user_balances (user_id, balance) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET balance = balance + ?", (user, token_amount, token_amount))
+
+    conn.commit()
+
+
+
+
 # Initialize tables when the module is imported
 setup()
-

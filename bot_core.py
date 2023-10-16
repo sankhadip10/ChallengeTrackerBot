@@ -1,15 +1,20 @@
 import discord
 from discord.ext import commands
-from reactions_feature import setup_reactions
-from events_feature import setup_events
-from config import BOT_TOKEN, DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
-
+from config import BOT_TOKEN
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+@bot.event
+async def on_ready():
+    await bot.load_extension("reactions_feature")
+    await bot.load_extension("events_feature")
+    print(f'Logged in as {bot.user.name}({bot.user.id})')
+
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send(f"Sorry {ctx.author.mention}, that command doesn't exist!")
@@ -18,12 +23,12 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f"An error occurred: {error}")
 
-# Set up different features
-setup_reactions(bot)
-setup_events(bot)
+
+# Load the events feature as an extension (cog)
+# bot.load_extension("reactions_feature")
+# bot.load_extension("events_feature")
+# bot.load_extension("post_verification")
+
 
 if __name__ == "__main__":
-    # from config import BOT_TOKEN
     bot.run(BOT_TOKEN)
-    # db.add_event("Test Event", 10, "Start", "End")
-    # print(db.get_all_events())

@@ -1,70 +1,69 @@
 import re
-import tweepy
-import scrapy
-from scrapy.crawler import CrawlerProcess
-import requests
-from config import consumer_key,consumer_secret,access_token,access_token_secret
+import logging
+from discord.ext import commands
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-def verify_url(url):
-    twitter_pattern = re.compile(r'https?://twitter\.com/[^/]+/status/\d+')
-    linkedin_pattern = re.compile(r'https?://www\.linkedin\.com/feed/update/urn:li:activity:\d+/')
+# Set up logging (this is just a basic setup, adjust as needed)
+logging.basicConfig(level=logging.INFO)
+challenge_pattern = re.compile(r'#(\d+)_of_(\d+)_day_challenge', re.IGNORECASE)
 
-    if twitter_pattern.match(url):
-        return 'twitter'
-    elif linkedin_pattern.match(url):
-        return 'linkedin'
-    else:
-        return None
+class PostVerification(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
+    @staticmethod
+    def verify_url(url):
+        twitter_pattern = re.compile(r'https?://twitter\.com/[^/]+/status/\d+')
+        linkedin_pattern = re.compile(r'https?://www\.linkedin\.com/feed/update/urn:li:activity:\d+/?')
 
-# Set up the tweepy client (you'd get these keys from your Twitter developer portal)
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth)
+        logging.info(f"Verifying URL: {url}")
+        if twitter_pattern.match(url):
+            return 'twitter'
+        elif linkedin_pattern.match(url):
+            return 'linkedin'
+        else:
+            return None
 
-def verify_tweet_format(tweet_id):
-    try:
-        tweet = api.get_status(tweet_id)
-    except tweepy.errors.Forbidden as e:
-        print("Error: Access to Twitter API endpoint is forbidden. You might need to request Elevated Access.")
-        return None
-    content = tweet.text
-    if "day #" in content and "#30_days_challenge" in content:
-        return True
-    return False
+    @staticmethod
+    def verify_post(url, day, total_days):
+        platform = PostVerification.verify_url(url)  # Use class name to reference static method
+        if platform == 'linkedin':
+            return PostVerification.verify_linkedin_post_selenium(url, day, total_days)  # Same here
+        else:
+            return False  # Invalid URL or not from LinkedIn
 
+    @staticmethod
+    def construct_xpath(day, total_days):
+        return f'//a[contains(text(), "#{day}_of_{total_days}_day_challenge")]'
 
-# Scrapy Spider for LinkedIn
-class LinkedInSpider(scrapy.Spider):
-    name = "linkedin_verifier"
-    start_urls = []
+    @staticmethod
+    def verify_linkedin_post_selenium(url, day, total_days):
+        driver = WebDriver()
+        driver.get(url)
+        wait = WebDriverWait(driver, 20)
 
-    def __init__(self, url=None, *args, **kwargs):
-        super(LinkedInSpider, self).__init__(*args, **kwargs)
-        if url:
-            self.start_urls.append(url)
+        try:
+            # Construct dynamic XPath
+            xpath_dynamic = PostVerification.construct_xpath(day, total_days)
+            post_element = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dynamic)))
+            post_content = post_element.text
+            logging.info(f"Post Content: {post_content}")
+            match = challenge_pattern.search(post_content)
+            if match:
+                day, total_days = map(int, match.groups())
+                if 1 <= day <= total_days:
+                    driver.close()
+                    return True
+        except (NoSuchElementException, TimeoutException):
+            driver.close()
+            return False
 
-    def parse(self, response):
-        post_content = response.xpath("//a[contains(text(), '_days_challenge')]/text()").get()
-        print("+++++++++++++++",post_content)
-        if post_content:
-            if "day #1" in post_content or "29_days_challenge" in post_content:
-                self.log('Verified Post: %s' % response.url)
+        driver.close()
+        return False
 
-
-def verify_linkedin_post(url):
-    process = CrawlerProcess({'USER_AGENT': 'Mozilla/5.0'})
-    process.crawl(LinkedInSpider, url=url)
-    process.start()
-
-def verify_post(url):
-    platform = verify_url(url)
-    if platform == 'twitter':
-        tweet_id = url.split('/')[-1]
-        return verify_tweet_format(tweet_id)
-    elif platform == 'linkedin':
-        return verify_linkedin_post(url)
-    else:
-        return False  # Invalid URL or not from Twitter/LinkedIn
-
-
+def setup(bot):
+    bot.add_cog(PostVerification(bot))
