@@ -162,5 +162,6 @@ class EventsCog(commands.Cog):
 
 
 # Ensure to load the commands when importing the module
-def setup(bot):
-    bot.add_cog(EventsCog(bot))
+async def setup(bot):
+    await bot.add_cog(EventsCog(bot))
+

@@ -65,5 +65,6 @@ class PostVerification(commands.Cog):
         driver.close()
         return False
 
-def setup(bot):
-    bot.add_cog(PostVerification(bot))
+async def setup(bot):
+    await bot.add_cog(PostVerification(bot))
+

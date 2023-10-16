@@ -26,5 +26,7 @@ class ReactionsCog(commands.Cog):
             await warning.delete(delay=5)
 
 
-def setup(bot):
-    bot.add_cog(ReactionsCog(bot))
+async def setup(bot):
+    await bot.add_cog(ReactionsCog(bot))
+
+

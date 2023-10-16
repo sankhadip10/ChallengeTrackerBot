@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from config import BOT_TOKEN
+import asyncio  # Import the asyncio module
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -21,13 +22,18 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f"An error occurred: {error}")
 
+async def load_extensions():
+    await bot.load_extension("reactions_feature")
+    await bot.load_extension("events_feature")
 
-# Load the events feature as an extension (cog)
-# bot.load_extension("reactions_feature")
-# bot.load_extension("events_feature")
-# bot.load_extension("post_verification")
-bot.load_extension("reactions_feature")
-bot.load_extension("events_feature")
+
+
+
+# Use asyncio to get the default event loop and run the coroutine
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(load_extensions())
+asyncio.run(load_extensions())
+
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
