@@ -10,8 +10,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
-    await bot.load_extension("reactions_feature")
-    await bot.load_extension("events_feature")
     print(f'Logged in as {bot.user.name}({bot.user.id})')
 
 @bot.event
@@ -28,7 +26,8 @@ async def on_command_error(ctx, error):
 # bot.load_extension("reactions_feature")
 # bot.load_extension("events_feature")
 # bot.load_extension("post_verification")
-
+bot.load_extension("reactions_feature")
+bot.load_extension("events_feature")
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
