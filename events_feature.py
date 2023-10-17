@@ -153,15 +153,17 @@ class EventsCog(commands.Cog):
                 f"{ctx.message.author.mention}, please provide a URL in the format: https://www.linkedin.com/feed/update/urn:li:activity:<numeric_id>/")
             return
 
+        if not db.is_user_registered(user_id):
+            await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
+            return
+
         # Check if event exists
         event_details = db.get_all_events().get(event_name)
         if not event_details:
             await ctx.send(f"No event found with the name {event_name}!")
             return
 
-        if not db.is_user_registered(user_id):
-            await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
-            return
+
 
         if not validators.url(url):
             await ctx.send(f"{ctx.message.author.mention}, the provided URL is not valid.")
@@ -232,6 +234,9 @@ class EventsCog(commands.Cog):
     @commands.has_role("BotCommander")
     async def eligibility(self, ctx, event_name: str, page: int = 1):
         try:
+            if not ctx.author.guild_permissions.administrator:
+                await ctx.send("You don't have the necessary permissions to execute this command.")
+                return
             # Check if the event exists
             if event_name not in db.get_all_events():
                 await ctx.send(f"No event found with the name {event_name}!")
@@ -267,10 +272,14 @@ class EventsCog(commands.Cog):
         if isinstance(error, commands.MissingRole):
             await ctx.send(f"{ctx.author.mention}, you do not have the necessary role to use this command.")
 
-    @commands.command(name='export')
     @commands.has_role("BotCommander")
+    @commands.command(name='export')
     async def export(self, ctx, event_name: str):
         try:
+            if "BotCommander" not in [role.name for role in ctx.author.roles]:
+                await ctx.send("You don't have the necessary permissions to execute this command.")
+                return
+
             # Check if the event exists
             if event_name not in db.get_all_events():
                 await ctx.send(f"No event found with the name {event_name}!")
@@ -296,10 +305,13 @@ class EventsCog(commands.Cog):
         except Exception as e:
             await ctx.send(f"An unexpected error occurred: {e}")
 
-    @commands.command(name="distributeTokens")
     @commands.has_role("BotCommander")
+    @commands.command(name="distributeTokens")
     async def distribute_tokens(self, ctx, event_name):
         try:
+            if "BotCommander" not in [role.name for role in ctx.author.roles]:
+                await ctx.send("You don't have the necessary permissions to execute this command.")
+                return
             # Check if the event exists
             if event_name not in db.get_all_events():
                 await ctx.send(f"No event found with the name {event_name}!")

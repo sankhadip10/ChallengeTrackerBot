@@ -1,10 +1,13 @@
 import sqlite3
 from datetime import datetime
-import datetime
+from datetime import datetime, date
+import os
 
+# Determine the database path based on the environment
+DB_PATH = 'test_events.db' if os.environ.get('TEST_ENV') else 'events.db'
 
 # Connection to the SQLite database
-conn = sqlite3.connect('events.db')
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 
@@ -143,7 +146,7 @@ def get_all_users():
 
 
 def add_daily_post(user_id, url):
-    current_date = datetime.datetime.now().date().isoformat()
+    current_date = datetime.now().date().isoformat()
     cursor.execute("INSERT INTO posts (user_id, post_date, post_url) VALUES (?, ?, ?)", (user_id, current_date, url))
     conn.commit()
 
@@ -206,9 +209,13 @@ def get_eligible_users(event_name):
 
     event_duration = result[0]
 
-    cursor.execute("SELECT user_id FROM user_event_streaks WHERE event_name=? AND streak=?",
-                   (event_name, event_duration))
-    eligible_users = [user[0] for user in cursor.fetchall()]
+    cursor.execute("""
+        SELECT user_id, streak, last_post_date 
+        FROM user_event_streaks 
+        WHERE event_name=? AND streak=?
+    """, (event_name, event_duration))
+
+    eligible_users = [{"user_id": user[0], "streak": user[1], "last_post_date": user[2]} for user in cursor.fetchall()]
     return eligible_users
 
 def distribute_tokens(event_name):

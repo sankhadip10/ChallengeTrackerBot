@@ -1,0 +1,10 @@
+[
+    {
+        "event_name": "TestEvent1",
+        "duration": 5,
+        "start_date": "01-01-2023",
+        "end_date": "05-01-2023",
+        "token_reward": 10
+    }
+
+]
