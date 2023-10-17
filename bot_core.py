@@ -12,6 +12,10 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}({bot.user.id})')
+    if not hasattr(bot, 'extensions_loaded'):
+        await load_extensions()
+        bot.extensions_loaded = True
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -26,14 +30,6 @@ async def load_extensions():
     await bot.load_extension("reactions_feature")
     await bot.load_extension("events_feature")
 
-
-
-
-# Use asyncio to get the default event loop and run the coroutine
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(load_extensions())
-asyncio.run(load_extensions())
-
-
 if __name__ == "__main__":
+    # asyncio.run(load_extensions())
     bot.run(BOT_TOKEN)

@@ -11,19 +11,21 @@ class ReactionsCog(commands.Cog):
             return
 
         # If the message is a command, process it and exit the function
+        # if message.content.startswith('!'):
+        #     await self.bot.process_commands(message)
+        #     return
+        # If the message is a command, exit the function
         if message.content.startswith('!'):
-            await self.bot.process_commands(message)
             return
-
         # Your reactions logic here
         if message.content.startswith("Report"):
             await message.add_reaction("👍")
         else:
-            await message.delete()
+            # await message.delete()
             warning = await message.channel.send(
-                f"{message.author.mention}, your message does not start with 'Report'. Please follow the correct format.")
+                f"{message.author.mention}, your message does not start with '!'. Please follow the correct format.")
             # Optionally, delete the warning after a few seconds for cleanliness
-            await warning.delete(delay=5)
+            # await warning.delete(delay=5)
 
 
 async def setup(bot):

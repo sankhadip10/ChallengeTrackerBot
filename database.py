@@ -1,5 +1,7 @@
 import sqlite3
 from datetime import datetime
+import datetime
+
 
 # Connection to the SQLite database
 conn = sqlite3.connect('events.db')
@@ -67,12 +69,12 @@ def setup():
 
 
 # Event-related functions
-def add_event(event_name, duration, start_date, end_date):
+def add_event(event_name, duration, start_date, end_date, token_reward):
     """Add a new event to the database."""
     try:
         print("Attempting to add event to the database...")
-        cursor.execute("INSERT INTO events (event_name, duration, start_date, end_date) VALUES (?, ?, ?, ?)",
-                       (event_name, duration, start_date, end_date))
+        cursor.execute("INSERT INTO events (event_name, duration, start_date, end_date, token_reward) VALUES (?, ?, ?, ?, ?)",
+                       (event_name, duration, start_date, end_date, token_reward))
         conn.commit()
         print("Event added successfully.")
 
@@ -103,13 +105,15 @@ def get_all_events():
     events = cursor.fetchall()
     events_dict = {}
     for event in events:
-        event_name, duration, start_date, end_date = event
+        event_name, duration, start_date, end_date, token_reward = event
         events_dict[event_name] = {
             'duration': duration,
             'start_date': start_date,
-            'end_date': end_date
+            'end_date': end_date,
+            'token_reward': token_reward
         }
     return events_dict
+
 
 
 # Registration and posts-related functions
@@ -139,7 +143,6 @@ def get_all_users():
 
 
 def add_daily_post(user_id, url):
-    import datetime
     current_date = datetime.datetime.now().date().isoformat()
     cursor.execute("INSERT INTO posts (user_id, post_date, post_url) VALUES (?, ?, ?)", (user_id, current_date, url))
     conn.commit()
@@ -222,6 +225,10 @@ def distribute_tokens(event_name):
 
     conn.commit()
 
+def has_posted_today(user_id, event_name, current_date):
+    """Check if the user has already posted for the given event on the current date."""
+    cursor.execute("SELECT * FROM posts WHERE user_id=? AND post_date=?", (user_id, current_date.isoformat()))
+    return cursor.fetchone() is not None
 
 
 
