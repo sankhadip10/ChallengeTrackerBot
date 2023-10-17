@@ -231,9 +231,11 @@ def distribute_tokens(event_name):
 
     # Distribute tokens to eligible users
     for user in eligible_users:
-        cursor.execute("INSERT INTO user_balances (user_id, balance) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET balance = balance + ?", (user, token_amount, token_amount))
+        user_id = user["user_id"]
+        cursor.execute("INSERT INTO user_balances (user_id, balance) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET balance = balance + ?", (user_id, token_amount, token_amount))
 
     conn.commit()
+
 
 def has_posted_today(user_id, event_name, current_date):
     """Check if the user has already posted for the given event on the current date."""

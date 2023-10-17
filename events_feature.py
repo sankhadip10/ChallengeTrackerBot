@@ -136,11 +136,26 @@ class EventsCog(commands.Cog):
     @commands.command()
     async def register(self, ctx, event_name: str):
         user_id = ctx.message.author.id
+        # Check if the event exists
+        all_events = db.get_all_events()
+        if event_name not in all_events:
+            await ctx.send(f"{ctx.message.author.mention}, the event {event_name} does not exist!")
+            return
+
+        # Check if the user is already registered for the event
         if db.is_user_registered(user_id, event_name):
             await ctx.send(f"{ctx.message.author.mention}, you are already registered for event {event_name}!")
             return
-        db.register_user(user_id, event_name)  # Register the user for the specific event
-        await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered for event {event_name}!")
+
+        try:
+            db.register_user(user_id, event_name)
+            await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered for event {event_name}!")
+
+        except sqlite3.OperationalError:
+            await ctx.send(
+                f"{ctx.message.author.mention}, there was a problem connecting to the database. Please try again later.")
+            return
+
 
     @commands.command()
     async def post(self,ctx, event_name: str, url: str, for_which_day_posting: int, total_challenge_days: int):

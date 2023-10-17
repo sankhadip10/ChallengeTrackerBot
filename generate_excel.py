@@ -40,3 +40,4 @@ def generate_excel(eligible_users):
     filename = "eligible_participants.xlsx"
     wb.save(filename)
     print(f"{filename} has been saved!")
+    return filename
