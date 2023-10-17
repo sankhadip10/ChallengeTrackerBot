@@ -29,8 +29,11 @@ def setup():
     # User table setup
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
-        is_registered INTEGER NOT NULL
+        user_id INTEGER,
+        event_name TEXT,
+        is_registered INTEGER NOT NULL,
+        PRIMARY KEY (user_id, event_name),
+        FOREIGN KEY (event_name) REFERENCES events(event_name)
     )
     ''')
 
@@ -120,18 +123,18 @@ def get_all_events():
 
 
 # Registration and posts-related functions
-def is_user_registered(user_id):
-    cursor.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+def is_user_registered(user_id, event_name):
+    cursor.execute("SELECT * FROM users WHERE user_id=? AND event_name=?", (user_id, event_name))
     return cursor.fetchone() is not None
 
 
-def register_user(user_id):
-    if not is_user_registered(user_id):  # check if the user is already registered
-        cursor.execute("INSERT INTO users (user_id, is_registered) VALUES (?, 1)", (user_id,))
+def register_user(user_id, event_name):
+    if not is_user_registered(user_id, event_name):  # check if the user is already registered for the event
+        cursor.execute("INSERT INTO users (user_id, event_name, is_registered) VALUES (?, ?, 1)", (user_id, event_name))
         conn.commit()
-        print(f"User {user_id} registered successfully.")
+        print(f"User {user_id} registered successfully for event {event_name}.")
     else:
-        print(f"User {user_id} is already registered.")
+        print(f"User {user_id} is already registered for event {event_name}.")
 
 def get_all_users():
     """Retrieve all registered users from the database."""

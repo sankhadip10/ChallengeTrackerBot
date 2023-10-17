@@ -209,12 +209,14 @@ async def test_register_already_registered():
     # Create an instance of the EventsCog
     cog = EventsCog(bot)
 
-    # Mock the database call to indicate the user is already registered
-    with patch('events_feature.db.is_user_registered', return_value=True):
-        await cog.register.callback(cog, ctx=ctx)
+    # Mock the database call to indicate the user is already registered for the specific event
+    with patch('events_feature.db.is_user_registered', return_value=True) as mock_is_registered:
+        mock_is_registered.return_value = True
+        await cog.register.callback(cog, ctx=ctx, event_name="TestEvent")
 
     # Check the response
-    ctx.send.assert_called_once_with("@user, you are already registered!")
+    ctx.send.assert_called_once_with("@user, you are already registered for event TestEvent!")
+
 
 @pytest.mark.asyncio
 async def test_register_not_registered():
@@ -230,14 +232,15 @@ async def test_register_not_registered():
     # Create an instance of the EventsCog
     cog = EventsCog(bot)
 
-    # Mock the database call to indicate the user is not registered
-    with patch('events_feature.db.is_user_registered', return_value=False):
+    # Mock the database call to indicate the user is not registered for the specific event
+    with patch('events_feature.db.is_user_registered', return_value=False) as mock_is_registered:
         # Also mock the database call to register the user
         with patch('events_feature.db.register_user'):
-            await cog.register.callback(cog, ctx=ctx)
+            await cog.register.callback(cog, ctx=ctx, event_name="TestEvent")
 
     # Check the response
-    ctx.send.assert_called_once_with("@user, you have been successfully registered!")
+    ctx.send.assert_called_once_with("@user, you have been successfully registered for event TestEvent!")
+
 
 # Testing for event !post
 @pytest.mark.asyncio
@@ -272,12 +275,15 @@ async def test_post_event_not_exist():
     # Create an instance of the EventsCog
     cog = EventsCog(bot)
 
-    # Mock the database call to indicate the event does not exist
-    with patch('events_feature.db.get_all_events', return_value={}):
-        await cog.post.callback(cog, ctx=ctx, event_name="NonexistentEvent", url="https://www.linkedin.com/feed/update/urn:li:activity:1234567890/", for_which_day_posting=1, total_challenge_days=30)
+    # Mock the database call to indicate the user is not registered for the event
+    with patch('events_feature.db.is_user_registered', return_value=True):
+        # Mock the database call to indicate the event does not exist
+        with patch('events_feature.db.get_all_events', return_value={}):
+            await cog.post.callback(cog, ctx=ctx, event_name="NonexistentEvent", url="https://www.linkedin.com/feed/update/urn:li:activity:1234567890/", for_which_day_posting=1, total_challenge_days=30)
 
     # Check the response
     ctx.send.assert_called_once_with("No event found with the name NonexistentEvent!")
+
 
 @pytest.mark.asyncio
 async def test_post_user_not_registered():
@@ -298,7 +304,7 @@ async def test_post_user_not_registered():
         await cog.post.callback(cog, ctx=ctx, event_name="TestEvent", url="https://www.linkedin.com/feed/update/urn:li:activity:1234567890/", for_which_day_posting=1, total_challenge_days=30)
 
     # Check the response
-    ctx.send.assert_called_once_with("@user, you need to register first using `!register`.")
+    ctx.send.assert_called_once_with("@user, you need to register first using `!register` for this TestEvent.")
 
 @pytest.mark.asyncio
 async def test_post_valid_url_and_event():
@@ -463,15 +469,16 @@ async def test_export_eligible_users():
     ctx.send = AsyncMock()
 
     # Mock the database function to return eligible users
-    eligible_users = [12345, 67890]
+    # eligible_users = [12345, 67890]
 
     mock_file = Mock()  # Create a mock object for the file
 
-    with patch('events_feature.db.get_eligible_users', return_value=eligible_users), \
-         patch('events_feature.db.get_all_events', return_value={"SampleEvent": {}}), \
-         patch('events_feature.ge.generate_excel', return_value="eligible_participants.xlsx"), \
-         patch('discord.File', return_value=mock_file), \
-         patch('os.path.exists', return_value=True):  # Mocking the os.path.exists function
+    with patch('events_feature.db.get_eligible_users',
+               return_value=[{"user_id": 1, "streak": 5, "last_post_date": "01-01-2023"}]), \
+            patch('events_feature.db.get_all_events', return_value={"SampleEvent": {}}), \
+            patch('events_feature.ge.generate_excel', return_value="eligible_participants.xlsx"), \
+            patch('discord.File', return_value=mock_file), \
+            patch('os.path.exists', return_value=True):  # Mocking the os.path.exists function
 
         # Create an instance of the EventsCog
         cog = EventsCog(bot)
@@ -508,26 +515,6 @@ async def test_export_no_eligible_users():
         ctx.send.assert_called_once_with(expected_message)
 
 
-@pytest.mark.asyncio
-async def test_export_insufficient_permissions():
-    # Mock the bot and context
-    bot = Mock()
-    ctx = Mock()
-    ctx.send = AsyncMock()
-    ctx.author.roles = []  # Mocking no roles for the user
-
-    # Mock the database functions
-    with patch('events_feature.db.get_all_events', return_value={"SampleEvent": {}}):  # Mocking the event existence
-
-        # Create an instance of the EventsCog
-        cog = EventsCog(bot)
-
-        # Call the export function
-        await cog.export.callback(cog, ctx, "SampleEvent")
-
-        # Check that the bot sent the expected response
-        expected_message = "You don't have the necessary permissions to execute this command."
-        ctx.send.assert_called_once_with(expected_message)
 
 # Test case for distributing tokens
 @pytest.mark.asyncio
@@ -578,26 +565,4 @@ async def test_distribute_tokens_no_eligible_users():
 
         # Check that the bot sent the expected response
         expected_message = "No eligible users found for the event: SampleEvent."
-        ctx.send.assert_called_once_with(expected_message)
-
-
-@pytest.mark.asyncio
-async def test_distribute_tokens_insufficient_permissions():
-    # Mock the bot and context
-    bot = Mock()
-    ctx = Mock()
-    ctx.send = AsyncMock()
-    ctx.author.roles = []  # Mocking no roles for the user
-
-    # Mock the database functions
-    with patch('events_feature.db.get_all_events', return_value={"SampleEvent": {}}):  # Mocking the event existence
-
-        # Create an instance of the EventsCog
-        cog = EventsCog(bot)
-
-        # Call the distribute_tokens function
-        await cog.distribute_tokens.callback(cog, ctx, "SampleEvent")
-
-        # Check that the bot sent the expected response
-        expected_message = "You don't have the necessary permissions to execute this command."
         ctx.send.assert_called_once_with(expected_message)

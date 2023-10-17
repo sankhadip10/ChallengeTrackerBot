@@ -1,7 +1,10 @@
 [
     {
         "user_id": 1234567890,
+        "event_name": "Event1",
         "is_registered": 1
+
     }
 
 ]
+

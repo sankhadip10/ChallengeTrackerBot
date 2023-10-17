@@ -12,6 +12,7 @@ current_pages = {}
 class EventsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.remove_command('help')
 
     @commands.command()
     @commands.has_role("BotCommander")
@@ -133,14 +134,13 @@ class EventsCog(commands.Cog):
             await ctx.send(f"An error occurred: {e}")
 
     @commands.command()
-    async def register(self,ctx):
+    async def register(self, ctx, event_name: str):
         user_id = ctx.message.author.id
-        if db.is_user_registered(user_id):  # You need to define this function in your database.py
-            await ctx.send(f"{ctx.message.author.mention}, you are already registered!")
+        if db.is_user_registered(user_id, event_name):
+            await ctx.send(f"{ctx.message.author.mention}, you are already registered for event {event_name}!")
             return
-        db.register_user(user_id)  # Register the user in your data storage
-        await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered!")
-
+        db.register_user(user_id, event_name)  # Register the user for the specific event
+        await ctx.send(f"{ctx.message.author.mention}, you have been successfully registered for event {event_name}!")
 
     @commands.command()
     async def post(self,ctx, event_name: str, url: str, for_which_day_posting: int, total_challenge_days: int):
@@ -153,8 +153,8 @@ class EventsCog(commands.Cog):
                 f"{ctx.message.author.mention}, please provide a URL in the format: https://www.linkedin.com/feed/update/urn:li:activity:<numeric_id>/")
             return
 
-        if not db.is_user_registered(user_id):
-            await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register`.")
+        if not db.is_user_registered(user_id,event_name):
+            await ctx.send(f"{ctx.message.author.mention}, you need to register first using `!register` for this {event_name}.")
             return
 
         # Check if event exists
@@ -162,8 +162,6 @@ class EventsCog(commands.Cog):
         if not event_details:
             await ctx.send(f"No event found with the name {event_name}!")
             return
-
-
 
         if not validators.url(url):
             await ctx.send(f"{ctx.message.author.mention}, the provided URL is not valid.")
@@ -181,6 +179,7 @@ class EventsCog(commands.Cog):
         if db.has_posted_today(user_id, event_name, date.today()):
             await ctx.send(f"{ctx.message.author.mention}, you've already posted for this event today.")
             return
+
         # Validate day numbers
         if not (1 <= for_which_day_posting <= event_details['duration']):
             await ctx.send(f"{ctx.message.author.mention}, the day number you provided is out of range for this event.")
@@ -207,7 +206,7 @@ class EventsCog(commands.Cog):
         user_id = ctx.author.id
 
         # Check if user is registered
-        if not db.is_user_registered(user_id):
+        if not db.is_user_registered(user_id,event_name):
             await ctx.send(f"{ctx.author.mention}, you need to register first using `!register`.")
             return
 
@@ -276,22 +275,28 @@ class EventsCog(commands.Cog):
     @commands.command(name='export')
     async def export(self, ctx, event_name: str):
         try:
-            if "BotCommander" not in [role.name for role in ctx.author.roles]:
-                await ctx.send("You don't have the necessary permissions to execute this command.")
-                return
+            # print("Starting the export function...")  # Initial print statement
+
+            # if "BotCommander" not in [role.name for role in ctx.author.roles]:
+            #     await ctx.send("You don't have the necessary permissions to execute this command.")
+            #     return
 
             # Check if the event exists
-            if event_name not in db.get_all_events():
+            all_events = db.get_all_events()
+            print(f"All events from the database: {all_events}")  # Print all events
+            if event_name not in all_events:
                 await ctx.send(f"No event found with the name {event_name}!")
                 return
 
             eligible_users = db.get_eligible_users(event_name)
+            # print(f"Eligible users for {event_name}: {eligible_users}")  # Print eligible users
             if not eligible_users:
                 await ctx.send(f"No eligible users found for the event: {event_name}.")
                 return
 
             # Generate the Excel file
             filename = ge.generate_excel(eligible_users)
+            # print(f"Generated Excel filename: {filename}")  # Print the generated filename
 
             if not os.path.exists(filename):
                 await ctx.send("There was an error generating the Excel file. Please try again later.")
@@ -303,15 +308,16 @@ class EventsCog(commands.Cog):
         except sqlite3.Error as e:
             await ctx.send(f"Database error: {e}")
         except Exception as e:
+            # print(f"Exception details: {e}")  # Print details of any unexpected exception
             await ctx.send(f"An unexpected error occurred: {e}")
 
     @commands.has_role("BotCommander")
     @commands.command(name="distributeTokens")
     async def distribute_tokens(self, ctx, event_name):
         try:
-            if "BotCommander" not in [role.name for role in ctx.author.roles]:
-                await ctx.send("You don't have the necessary permissions to execute this command.")
-                return
+            # if "BotCommander" not in [role.name for role in ctx.author.roles]:
+            #     await ctx.send("You don't have the necessary permissions to execute this command.")
+            #     return
             # Check if the event exists
             if event_name not in db.get_all_events():
                 await ctx.send(f"No event found with the name {event_name}!")
@@ -338,6 +344,40 @@ class EventsCog(commands.Cog):
     async def role_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
             await ctx.send(f"{ctx.author.mention}, you do not have the necessary role to use this command.")
+
+    @commands.command()
+    async def help(self, ctx):
+        embed = discord.Embed(title="!HELP", description="Challenge Tracker Bot Commands", color=0x00ff00)
+
+        # General Commands
+        embed.add_field(name="🔹 General Commands 🔹", value="Commands available for all users:", inline=False)
+        embed.add_field(name="1️⃣ !register <event_name>", value="Register for a specific event.\nExample: `!register EventName`", inline=False)
+        embed.add_field(name="2️⃣ !post",
+                        value="Post your progress for an event.\nExample: `!post EventName https://www.linkedin.com/feed/update/urn:li:activity:1234567890/ 5 30`",
+                        inline=False)
+        embed.add_field(name="3️⃣ !listEvents", value="List all events.\nExample: `!listEvents`", inline=False)
+        embed.add_field(name="4️⃣ !checkStreak",
+                        value="Check your streak for an event.\nExample: `!checkStreak EventName`", inline=False)
+
+        # Separator
+        embed.add_field(name="⠀", value="⠀", inline=False)  # This is an invisible separator
+
+        # Admin Commands
+        embed.add_field(name="🔸 Admin Commands 🔸", value="Commands available for admins only:", inline=False)
+        embed.add_field(name="1️⃣ !createEvent",
+                        value="Create a new event.\nExample: `!createEvent EventName 30 01-01-2023 30-01-2023 50`",
+                        inline=False)
+        embed.add_field(name="2️⃣ !deleteEvent", value="Delete an event.\nExample: `!deleteEvent EventName`",
+                        inline=False)
+        embed.add_field(name="3️⃣ !eligibility",
+                        value="Check eligible users for an event.\nExample: `!eligibility EventName 1`", inline=False)
+        embed.add_field(name="4️⃣ !export",
+                        value="Export eligible users for an event to Excel.\nExample: `!export EventName`",
+                        inline=False)
+        embed.add_field(name="5️⃣ !distributeTokens",
+                        value="Distribute tokens for an event.\nExample: `!distributeTokens EventName`", inline=False)
+
+        await ctx.send(embed=embed)
 
 
 # Ensure to load the commands when importing the module

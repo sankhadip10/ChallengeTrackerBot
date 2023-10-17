@@ -21,7 +21,8 @@ def setup_module():
     for event in mock_events:
         db.add_event(**event)
     for user in mock_users:
-        db.register_user(user['user_id'])
+        db.register_user(user['user_id'], user['event_name'])
+
 
 # Teardown function to clear the test database
 def teardown_module():
@@ -74,3 +75,14 @@ def test_update_streak():
 
     streak = db.get_user_streak(user_id, event_name)
     assert streak == 1, f"Expected streak of 1 for user {user_id}, but got {streak}"
+
+def test_register_user():
+    user_id = 1234567890  # Example user ID
+    event_name = "TestEvent1"
+    db.register_user(user_id, event_name)
+    assert db.is_user_registered(user_id, event_name), f"User {user_id} should be registered for {event_name}"
+
+def test_is_user_registered():
+    user_id = mock_users[0]['user_id']
+    event_name = mock_users[0]['event_name']
+    assert db.is_user_registered(user_id, event_name), f"User {user_id} should be registered for {event_name}"
