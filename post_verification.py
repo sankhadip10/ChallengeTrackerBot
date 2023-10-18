@@ -77,7 +77,7 @@ class PostVerification(commands.Cog):
     #     return False
 
     @staticmethod
-    def verify_linkedin_post_selenium(url, day, total_days):
+    def verify_linkedin_post_selenium(urll, day, total_days):
         # Sauce Labs setup
         options = ChromeOptions()
         options.browser_version = 'latest'
@@ -92,7 +92,7 @@ class PostVerification(commands.Cog):
         url = "https://ondemand.eu-central-1.saucelabs.com:443/wd/hub"
         driver = webdriver.Remote(command_executor=url, options=options)
 
-        driver.get(url)
+        driver.get(urll)
         wait = WebDriverWait(driver, 60)
         try:
             # Construct dynamic XPath
