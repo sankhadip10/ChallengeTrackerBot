@@ -135,7 +135,7 @@ async def test_deleteEvent_insufficient_permissions():
     cog = EventsCog(bot)
 
     # Simulate a MissingRole error
-    error = commands.MissingRole("BotCommander")
+    error = commands.MissingRole("BOT_COMMAND_ROLE")
     await cog.role_error(ctx, error)
 
     ctx.send.assert_called_once_with(f"{ctx.author.mention}, you do not have the necessary role to use this command.")
@@ -210,7 +210,9 @@ async def test_register_already_registered():
     cog = EventsCog(bot)
 
     # Mock the database call to indicate the user is already registered for the specific event
-    with patch('events_feature.db.is_user_registered', return_value=True) as mock_is_registered:
+    with patch('events_feature.db.get_all_events', return_value={"TestEvent": {}}) as mock_get_all_events, \
+            patch('events_feature.db.is_user_registered', return_value=True) as mock_is_registered:
+        mock_get_all_events.return_value = {"TestEvent": {}}
         mock_is_registered.return_value = True
         await cog.register.callback(cog, ctx=ctx, event_name="TestEvent")
 
@@ -233,13 +235,14 @@ async def test_register_not_registered():
     cog = EventsCog(bot)
 
     # Mock the database call to indicate the user is not registered for the specific event
-    with patch('events_feature.db.is_user_registered', return_value=False) as mock_is_registered:
-        # Also mock the database call to register the user
-        with patch('events_feature.db.register_user'):
-            await cog.register.callback(cog, ctx=ctx, event_name="TestEvent")
+    with patch('events_feature.db.is_user_registered', return_value=False) as mock_is_registered, \
+         patch('events_feature.db.get_all_events', return_value={"TestEvent": {}}), \
+         patch('events_feature.db.register_user'):
+        await cog.register.callback(cog, ctx=ctx, event_name="TestEvent")
 
     # Check the response
     ctx.send.assert_called_once_with("@user, you have been successfully registered for event TestEvent!")
+
 
 
 # Testing for event !post

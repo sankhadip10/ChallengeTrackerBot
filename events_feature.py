@@ -6,6 +6,8 @@ from discord.ext import commands
 import post_verification
 import database as db
 import generate_excel as ge
+from config import BOT_COMMAND_ROLE
+
 
 PAGE_SIZE = 20  # Number of users displayed per page
 current_pages = {}
@@ -15,7 +17,7 @@ class EventsCog(commands.Cog):
         self.bot.remove_command('help')
 
     @commands.command()
-    @commands.has_role("BotCommander")
+    @commands.has_role(BOT_COMMAND_ROLE)
     async def createEvent(self, ctx, eventName: str, duration: int, start_date: str, end_date: str, token_reward: int):
         # Validate event name
         if not (3 <= len(eventName) <= 50):  # Assuming a min length of 3 and max length of 50
@@ -99,7 +101,7 @@ class EventsCog(commands.Cog):
         await self.bot.on_command_error(ctx, error)
 
     @commands.command()
-    @commands.has_role("BotCommander")
+    @commands.has_role(BOT_COMMAND_ROLE)
     # @commands.has_permissions(administrator=True)
     async def deleteEvent(self, ctx, eventName: str):
         try:
@@ -245,7 +247,7 @@ class EventsCog(commands.Cog):
 
 
     @commands.command()
-    @commands.has_role("BotCommander")
+    @commands.has_role(BOT_COMMAND_ROLE)
     async def eligibility(self, ctx, event_name: str, page: int = 1):
         try:
             if not ctx.author.guild_permissions.administrator:
@@ -286,13 +288,13 @@ class EventsCog(commands.Cog):
         if isinstance(error, commands.MissingRole):
             await ctx.send(f"{ctx.author.mention}, you do not have the necessary role to use this command.")
 
-    @commands.has_role("BotCommander")
+    @commands.has_role(BOT_COMMAND_ROLE)
     @commands.command(name='export')
     async def export(self, ctx, event_name: str):
         try:
             # print("Starting the export function...")  # Initial print statement
 
-            # if "BotCommander" not in [role.name for role in ctx.author.roles]:
+            # if "BOT_COMMAND_ROLE" not in [role.name for role in ctx.author.roles]:
             #     await ctx.send("You don't have the necessary permissions to execute this command.")
             #     return
 
@@ -326,11 +328,11 @@ class EventsCog(commands.Cog):
             # print(f"Exception details: {e}")  # Print details of any unexpected exception
             await ctx.send(f"An unexpected error occurred: {e}")
 
-    @commands.has_role("BotCommander")
+    @commands.has_role(BOT_COMMAND_ROLE)
     @commands.command(name="distributeTokens")
     async def distribute_tokens(self, ctx, event_name):
         try:
-            # if "BotCommander" not in [role.name for role in ctx.author.roles]:
+            # if "BOT_COMMAND_ROLE" not in [role.name for role in ctx.author.roles]:
             #     await ctx.send("You don't have the necessary permissions to execute this command.")
             #     return
             # Check if the event exists
