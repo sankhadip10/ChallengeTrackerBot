@@ -25,10 +25,10 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
 
 ### Event Management
 
-GeneralCommands:
-  description: "Commands available for all users"
+### GeneralCommands:
+  ## description: "Commands available for all users"
   commands:
-    - name: **"Register for an Event"**
+    - name: "Register for an Event"
       command: "!register <event_name>"
       example: "!register EventName"
       
@@ -71,12 +71,12 @@ GeneralCommands:
     - name: **"Distribute Tokens to Eligible Users"**
       command: "!distributeTokens <event_name>"
       example: "!distributeTokens EventName"
-
-
-### General
-
-1. **Help Command**
-!help
+      
+### GeneralCommands
+  ## description: "Commands available for everyone"
+  commands:
+    -name: **Help Command**
+    command: !help
 
 ## 🚀 Getting Started
 
