@@ -52,7 +52,16 @@ Example:
 !post_progress <event_name> <linkedin_post_link> <day_number> <total_challenge_days>
 
 Example:
-!post_progress "30 Days of Code" "https://linkedin.com/post/xyz" 5 30
+!post_progress "30 Days of Code" "https://www.linkedin.com/feed/update/urn:li:activity:7120111237136351232/" 5 30
+
+Make sure to copy the link exactly as it is.
+1.Second_last_argument:-The current day number of the event. For example, if the event is 30 days long and you're on the 5th day, you would enter '5'
+2.Last Argument:-The total number of days the event lasts. For example, '30' for a 30-day event.
+
+Make sure to post the update on linkdin in this format.
+<img width="300" alt="image" src="https://github.com/sankhadip10/ChallengeTrackerBot/assets/121531893/249d005e-c35c-4965-90e7-e36670aba0d1">
+1. First Hashtag-The current day number of the event. For example, if the event is 30 days long and you're on the 5th day, you would enter '5'
+2. Seconf hashtag:-The total number of days the event lasts. For example, '30' for a 30-day event.
 
 3. **Check Current Streak for an Event**
 !check_streak <event_name>
