@@ -32,7 +32,7 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
       command: "!register <event_name>"
       example: "!register EventName"
       
-    - name: **"Post Progress for an Event"**
+    - name: "Post Progress for an Event"
       command: "!post <event_name> <linkedin_post_link> <day_number> <total_challenge_days>"
       example: "!post EventName https://www.linkedin.com/feed/update/urn:li:activity:1234567890/ 5 30"
       notes:
@@ -56,7 +56,7 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
   ## description: "Commands available for admins only"
   
   commands:
-    - name: **"Create a New Event"**
+    - name: "Create a New Event"
       command: "!createEvent <event_name> <start_date> <end_date> <token_rewards>"
       example: "!createEvent EventName 30 01-01-2023 30-01-2023 50"
       
