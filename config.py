@@ -1,8 +1,8 @@
-import os
-
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
-sauce_option_un = os.environ.get('SAUCE_OPTION_UN')
-sauce_option_access_key = os.environ.get('SAUCE_OPTION_ACCESS_KEY')
+# Bot Token
+BOT_TOKEN = 'MTE2MTcxMTY0MTYzNzk2MTg1OQ.G_iKHQ.pP8sxL2VPR4P2BTlw4mO3pIPhxkRY9jmHGXwII'
+#sauseoptions
+sauce_options_un = "oauth-ricky.das25-1eb8a"
+sauce_options_access_key = "52607f42-102c-40e3-b4a3-9199d173c84b"
 
 # config.py
 BOT_COMMAND_ROLE = "BotCommander"

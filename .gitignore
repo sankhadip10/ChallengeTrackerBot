@@ -133,5 +133,5 @@ cython_debug/
 
 .idea/
 sanbot/
-#config.py
+config.py
 
