@@ -36,17 +36,21 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
       command: "!post <event_name> <linkedin_post_link> <day_number> <total_challenge_days>"
       example: "!post EventName https://www.linkedin.com/feed/update/urn:li:activity:1234567890/ 5 30"
       notes:
+    
         - "Make sure to copy the link exactly as it is."
         - "The day_number represents the current day number of the event."
         - "The total_challenge_days represents the total number of days the event lasts."
         
-    - name: **"List All Events"**
+    - name: "List All Events"
       command: "!listEvents"
       example: "!listEvents"
       
-    - name: **"Check Current Streak for an Event"**
+    - name: "Check Current Streak for an Event"
       command: "!checkStreak <event_name>"
       example: "!checkStreak EventName"
+**Example for post update:**
+
+<img width="220" alt="image" src="https://github.com/sankhadip10/ChallengeTrackerBot/assets/121531893/08e3815b-665f-4c37-82ad-aee670b871b9">
 
 ### AdminCommands:
   ## description: "Commands available for admins only"
@@ -56,19 +60,19 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
       command: "!createEvent <event_name> <start_date> <end_date> <token_rewards>"
       example: "!createEvent EventName 30 01-01-2023 30-01-2023 50"
       
-    - name: **"Delete an Event"**
+    - name: "Delete an Event"
       command: "!deleteEvent <event_name>"
       example: "!deleteEvent EventName"
       
-    - name: **"Check Eligibility for Rewards"**
+    - name: "Check Eligibility for Rewards"
       command: "!eligibility <event_name>"
       example: "!eligibility EventName 1"
       
-    - name: **"Export List of Eligible Users"**
+    - name: "Export List of Eligible Users"
       command: "!export <event_name>"
       example: "!export EventName"
       
-    - name: **"Distribute Tokens to Eligible Users"**
+    - name: "Distribute Tokens to Eligible Users"
       command: "!distributeTokens <event_name>"
       example: "!distributeTokens EventName"
       
