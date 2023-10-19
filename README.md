@@ -27,8 +27,10 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
 
 ### GeneralCommands:
   ## description: "Commands available for all users"
-  commands:
-    - name: "Register for an Event"
+  **commands:**
+
+  
+    -name: "Register for an Event"
       command: "!register <event_name>"
       example: "!register EventName"
       
@@ -55,7 +57,9 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
 ### AdminCommands:
   ## description: "Commands available for admins only"
   
-  commands:
+  **commands:**
+
+  
     - name: "Create a New Event"
       command: "!createEvent <event_name> <start_date> <end_date> <token_rewards>"
       example: "!createEvent EventName 30 01-01-2023 30-01-2023 50"
@@ -78,7 +82,9 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
       
 ### GeneralCommands
   ## description: "Commands available for everyone"
-  commands:
+  **commands:**
+
+  
     -name: **Help Command**
     command: !help
 
