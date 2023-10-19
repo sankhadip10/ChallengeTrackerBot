@@ -25,69 +25,53 @@ The Discord Daily Challenge Bot is designed to streamline the verification proce
 
 ### Event Management
 
-1. **Create a New Event**
-!create_event <event_name> <duration> <start_date> <end_date> <token_rewards>
+GeneralCommands:
+  description: "Commands available for all users"
+  commands:
+    - name: **"Register for an Event"**
+      command: "!register <event_name>"
+      example: "!register EventName"
+      
+    - name: **"Post Progress for an Event"**
+      command: "!post <event_name> <linkedin_post_link> <day_number> <total_challenge_days>"
+      example: "!post EventName https://www.linkedin.com/feed/update/urn:li:activity:1234567890/ 5 30"
+      notes:
+        - "Make sure to copy the link exactly as it is."
+        - "The day_number represents the current day number of the event."
+        - "The total_challenge_days represents the total number of days the event lasts."
+        
+    - name: **"List All Events"**
+      command: "!listEvents"
+      example: "!listEvents"
+      
+    - name: **"Check Current Streak for an Event"**
+      command: "!checkStreak <event_name>"
+      example: "!checkStreak EventName"
 
-Example:
-!create_event "30 Days of Code" 30 "2023-11-01" "2023-11-30" 100
+### AdminCommands:
+  ## description: "Commands available for admins only"
+  
+  commands:
+    - name: **"Create a New Event"**
+      command: "!createEvent <event_name> <start_date> <end_date> <token_rewards>"
+      example: "!createEvent EventName 30 01-01-2023 30-01-2023 50"
+      
+    - name: **"Delete an Event"**
+      command: "!deleteEvent <event_name>"
+      example: "!deleteEvent EventName"
+      
+    - name: **"Check Eligibility for Rewards"**
+      command: "!eligibility <event_name>"
+      example: "!eligibility EventName 1"
+      
+    - name: **"Export List of Eligible Users"**
+      command: "!export <event_name>"
+      example: "!export EventName"
+      
+    - name: **"Distribute Tokens to Eligible Users"**
+      command: "!distributeTokens <event_name>"
+      example: "!distributeTokens EventName"
 
-2. **Delete an Event**
-!delete_event <event_name>
-
-Example:
-!delete_event "30 Days of Code"
-
-3. **List All Events**
-!list_events
-
-### Participant Interaction
-
-1. **Register for an Event**
-!register <event_name>
-
-Example:
-!register "30 Days of Code"
-
-2. **Post Progress for an Event**
-!post_progress <event_name> <linkedin_post_link> <day_number> <total_challenge_days>
-
-Example:
-!post_progress "30 Days of Code" "https://www.linkedin.com/feed/update/urn:li:activity:7120111237136351232/" 5 30
-
-Make sure to copy the link exactly as it is.
-1.Second_last_argument:-The current day number of the event. For example, if the event is 30 days long and you're on the 5th day, you would enter '5'
-2.Last Argument:-The total number of days the event lasts. For example, '30' for a 30-day event.
-
-Make sure to post the update on linkdin in this format.
-<img width="300" alt="image" src="https://github.com/sankhadip10/ChallengeTrackerBot/assets/121531893/249d005e-c35c-4965-90e7-e36670aba0d1">
-1. First Hashtag-The current day number of the event. For example, if the event is 30 days long and you're on the 5th day, you would enter '5'
-2. Seconf hashtag:-The total number of days the event lasts. For example, '30' for a 30-day event.
-
-3. **Check Current Streak for an Event**
-!check_streak <event_name>
-
-Example:
-!check_streak "30 Days of Code"
-
-### Admin Commands
-
-1. **Check Eligibility for Rewards**
-!check_eligibility <event_name>
-
-Example:
-!check_eligibility "30 Days of Code"
-
-2. **Export List of Eligible Users**
-!export_eligible <event_name>
-
-Example:
-!export_eligible "30 Days of Code"
-
-3. **Distribute Tokens to Eligible Users**
-!distribute_tokens <event_name>
-
-Example:
-!distribute_tokens "30 Days of Code"
 
 ### General
 
